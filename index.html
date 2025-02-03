@@ -21,21 +21,39 @@
     </div>
 
     <script>
-        const API_URL = "https://LA_TEVA_API.cloudfunctions.net/chat"; // Substitueix per la teva API
+        const API_URL = "https://mseresc.github.io/chatbot-FAMA-web/chat"; // URL de la teva API segura
+        const GPT_MODEL = "gpt-4-turbo";  // Configurat per al GPT Expert
 
         async function sendMessage() {
             const userInput = document.getElementById("userInput").value;
             if (!userInput) return;
 
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: userInput })
-            });
+            const outputDiv = document.getElementById("output");
+            outputDiv.innerHTML += `<p><strong>Tu:</strong> ${userInput}</p>`;
 
-            const data = await response.json();
-            document.getElementById("output").innerHTML += `<p><strong>Bot:</strong> ${data.response}</p>`;
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: GPT_MODEL,
+                        messages: [{ role: "user", content: userInput }]
+                    })
+                });
+
+                const data = await response.json();
+                const botResponse = data.choices[0].message.content;
+                outputDiv.innerHTML += `<p><strong>Consultor FAMA CIRSA:</strong> ${botResponse}</p>`;
+                outputDiv.scrollTop = outputDiv.scrollHeight;
+            } catch (error) {
+                outputDiv.innerHTML += `<p style="color: red;"><strong>Error:</strong> No s'ha pogut connectar amb el chatbot.</p>`;
+            }
+
+            document.getElementById("userInput").value = "";
         }
     </script>
 </body>
 </html>
+
