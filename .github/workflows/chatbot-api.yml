@@ -1,0 +1,55 @@
+name: Chatbot API
+
+on:
+  workflow_dispatch:  # Permet executar-lo manualment
+  push:
+    branches:
+      - main  # S'executarà quan fem canvis a main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install requests flask
+
+      - name: Run API
+        run: |
+          echo "from flask import Flask, request, jsonify
+          import os
+          import requests
+
+          app = Flask(__name__)
+
+          @app.route('/chat', methods=['POST'])
+          def chat():
+              data = request.json
+              user_input = data.get('message', '')
+
+              headers = {
+                  'Authorization': f'Bearer {os.environ['OPENAI_API_KEY']}',
+                  'Content-Type': 'application/json'
+              }
+
+              payload = {
+                  'model': 'gpt-4-turbo',
+                  'messages': [{'role': 'user', 'content': user_input}]
+              }
+
+              response = requests.post('https://api.openai.com/v1/chat/completions', headers=headers, json=payload)
+              return jsonify(response.json())
+
+          if __name__ == '__main__':
+              app.run(host='0.0.0.0', port=8080)" > app.py
+
+          python app.py &
+          sleep 5
